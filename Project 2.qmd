@@ -94,4 +94,48 @@ grid.arrange(roomsp, pricep, propertycountp, Distancep, ncol = 2)
 
 They all look like gamma distribution with different shape and scale paramaters.
 
-Since the dataset has a date data, let's pick it up and plot a
+Since the dataset has a date data, let's pick it up and plot a time-series plot on those numeric variables. So it is basically a line plot
+
+```{r}
+MelHousing$Date <- as.Date (MelHousing$Date, format = "%m/%d/%Y")
+daily_avg_price <- MelHousing |> group_by(Date) |> summarize (price_avg = mean (Price, na.rm = TRUE))
+ggplot (daily_avg_price, aes (x = Date, y = price_avg)) +
+  geom_line (color = "black") +
+  labs (title = "Average Housing Price Over Time", x = "Date", y = "Average Melbourne Housing price")
+```
+
+There is no significant trend in the average price throughout the years. Meanwhile we could plot the same time-plot based on different Region in Melbourne.
+
+```{r}
+daily_avg_price <- MelHousing |> group_by(Date, RegionF) |> 
+  summarize (price_avg = mean (Price, na.rm = TRUE))
+
+ggplot (daily_avg_price, aes (x = Date, y = price_avg, color = RegionF)) +
+  geom_line (size = 0.7) +
+  labs (title = "Housing Price Over Time by different regions", 
+        x= "Date", 
+        y = "Average Melbourne Housing price",
+        color = "Region")
+```
+
+It would be also very interesting to look at the interplay between housing price and the distance to CBD. Use ggplot to plot the dot plot using x = "Distance" and y = "Price". In addtion, we could use rooms as a factor to make a facet grid. Note most of the housing units have room number less than or equal to 6
+
+```{r}
+MelHousing_room6 <- MelHousing |> filter (Rooms <= 6)
+
+ggplot (MelHousing_room6, aes (x = Distance, y = Price)) +
+  geom_point (color = "purple", alpha = 0.5, size = 0.5) +
+  labs (x = "Distance to CBD", y = "Housing price") +
+  facet_wrap(~Rooms)
+```
+
+We could see no matter how many rooms, the peak housing price comes at about somewhere around 5 miles to CBD. For this we could add another dimension of facet using facet_grid function.
+
+```{r}
+MelHousing_room6_metro <- MelHousing_room6 |> filter (grepl ("Metropolitan", Regionname))
+
+ggplot (MelHousing_room6_metro, aes (x = Distance, y = Price)) +
+  geom_point (color = "purple", alpha = 0.5, size = 0.5) +
+  labs (x = "Distance to CBD", y = "Housing price") +
+  facet_wrap(~Rooms)
+```
