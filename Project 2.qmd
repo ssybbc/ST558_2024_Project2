@@ -1,0 +1,97 @@
+---
+title: "ST558_2024_Project2"
+format: html
+editor: visual
+---
+
+# Melbourne Housing Market Data
+
+Welcome to the beach city of Melbourne, Australia! For this project let's take a look at the interesting housing market data. I chose this data set because data contains the date data, which is really good for visulization using an Rshiny App!
+
+I have downloaded the Melbourne housing data from \[here\] (http://www.kaggle.com/datasets/anthonypino/melbourne-housing-market): . Let's first import data and make some summaries.
+
+```{r}
+library (dplyr) 
+library (tidyverse) 
+library (ggplot2)
+library (gridExtra)
+setwd ("C:/NCSU/Statistics/ST558/2024/ST558_2024-Project 2")  
+MelHousing <- read.csv ("MELBOURNE_HOUSE_PRICES.csv") |> as.tibble () 
+MelHousing 
+str(MelHousing)
+```
+
+## Data summary
+
+### Categorical summaries
+
+From the function str(), we could see the data set has about 63k records of housing, with 13 variables. There are 8 categorical variables and 5 quantitative variables. For the categorical variables, some are very interesting. For example, the variable "Regionname" indicates which region a specific housing is seated in, the "Type" variable showed the type of housing.
+
+```{r}
+MelHousing <- MelHousing |> mutate (RegionF = as.factor (Regionname),
+                      TypeF = factor (Type, 
+                                      levels = c ("h", "t", "u"),
+                                      labels = c ("house", "townhouse","duplex")))
+
+MelHousing |> group_by(RegionF) |> drop_na (RegionF) |> summarize (count = n())
+
+MelHousing |> group_by(TypeF) |> drop_na (TypeF) |> summarize (count = n())
+```
+
+So there are 8 different city area in Melbourn. Among those different regions, the Southern Metropolitan and the Northern Metropolitan clearly had the most number of housing options and there are three different types of housing: house (h), townhouse (t) and duplex (u). How about making a two-way contingency table?
+
+```{r}
+MelHousing |> group_by (RegionF, TypeF) |> drop_na (RegionF, TypeF) |> summarize (count = n()) |> pivot_wider (names_from = RegionF, values_from = count) |> as.data.frame()
+```
+
+This table lists the number of different types of housing in different district. It is interesting to see not only the number of housing, but how different areas of a city tend to favor a certain type of housing instead of other types. For example the ratio between house and duplex is close to 7:1 in the Eastern metro region, but is close to 2:1 in the southern metro region. The housing type (and probably density) between those two regions must be very different.
+
+```{r}
+MelHousing <- MelHousing |> mutate (RoomsF = as.factor (Rooms))
+MelHousing |> group_by(RoomsF) |> drop_na (RoomsF) |> summarize (count = n())
+MelHousing |> group_by (RegionF, RoomsF) |> drop_na (RegionF, RoomsF) |> summarize (count = n()) |> pivot_wider (names_from = RegionF, values_from = count) |> as.data.frame()
+```
+
+The variable "rooms" is a quantitative one, but we could anyway coerce So if we make a 2-way contigency table on "Region" and "Rooms" same thing could be observed here: Dueling units with 1 room only are very rare in the Eastern Metro region (less than 1%), while it constitutes quite a fraction (about 7%) in the Southern Metropolitan region.
+
+### Numeric summaries
+
+There are five numeric variables: "Rooms", "Price", "Postcode", "Property count" and "Distance", while Postcode is not a real "quantitative" variable. Let's make a summary first on the rest four variables.
+
+```{r}
+MelHousingnum <- MelHousing |> select (Rooms, Price, Propertycount, Distance)
+summary (MelHousingnum)
+```
+
+It is interesting to see the housing price in different city regions, we could make a data summary on this accordingly.
+
+```{r}
+MelHousing |> group_by(RegionF) |> drop_na (Price) |>
+  summarize (across(Price,
+             .fns = list ("Mean" = mean,
+                          "Median" = median,
+                          "Variation" = var,
+                          "IQR" = IQR)))
+```
+
+To see the distribution of those four variables, including the number of rooms in a house, the price of the house, the property counts of the Suburbs and the houses' distance from Melbourn CBD, we could make four density plot and put them together.
+
+```{r}
+roomsp <- ggplot (MelHousingnum, aes (x = Rooms)) +
+  geom_histogram(color = "black", fill = "skyblue", alpha = 0.5) +
+  labs (x = "Rooms")
+pricep <- ggplot (MelHousingnum, aes (x = Price)) +
+  geom_histogram(color = "black", fill = "lightgreen", alpha = 0.5) +
+  labs (x = "Price")
+propertycountp <- ggplot (MelHousingnum, aes (x = Propertycount)) +
+  geom_histogram(color = "black", fill = "pink", alpha = 0.5) +
+  labs (x = "Property count")
+Distancep <- ggplot (MelHousingnum, aes (x = Distance)) +
+  geom_histogram(color = "black", fill = "lightyellow", alpha = 0.5) +
+  labs (x = "Distance from CBD")
+grid.arrange(roomsp, pricep, propertycountp, Distancep, ncol = 2)
+```
+
+They all look like gamma distribution with different shape and scale paramaters.
+
+Since the dataset has a date data, let's pick it up and plot a
