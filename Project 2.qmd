@@ -143,7 +143,7 @@ ggplot (MelHousing_room6_metro, aes (x = Distance, y = Price)) +
 
 It is interesting to see although the housing price in the Eastern and Southern metropolitan areas were similar among housing units with 1-3 bedrooms, southern metro neighbourhoods are much pricier at 4-6 bedroom houses. In fact there is a single house in the south metropolitan area that tops all the prices, which is a 4 bedroom house.
 
-#### Heatmap for daily price for council area
+#### Heatmap for daily price for different region
 
 It is interesting to look at the price changes of housing in different region at different time points. To make a heatmap meaningful, we first need to sort out the average price data for each council area at each time point, and then do normalization.
 
@@ -162,7 +162,7 @@ Then we need to normalize the data using the function mutate (across(everything(
 first_values <- sapply(daily_avg_price_regionF[-1], first)
 
 daily_avg_price_regionF_normalized <- daily_avg_price_regionF |>
-  mutate (across (everything(), ~. / first_values[cur_column()])) |>
+  mutate (across (everything(), ~. / first_values[cur_column()]))
   
 daily_avg_price_regionF_normalized
 ```
@@ -181,7 +181,3 @@ pheatmap (DAPRN_heatmap,
 ```
 
 From this heatmap you could roughly see housing price actually followed different trending at different areas. Now make an App to enable end users to visualize our data set!
-
-```{r}
-library (bslib)
-```
