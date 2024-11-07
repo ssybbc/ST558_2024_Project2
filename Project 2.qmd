@@ -174,10 +174,12 @@ DAPRN_heatmap <- daily_avg_price_regionF_normalized |> column_to_rownames(var = 
 
 pheatmap (DAPRN_heatmap,
           cluster_rows = FALSE,
+          treeheight_col = 20,
           color = colorRampPalette(c("blue", "white", "red"))(50),
           main = "Housing Price Heatmap",
-          cellwidth = 15,
-          cellheight = 9)
+          cellwidth = 16,
+          cellheight = 8,
+          angle_col = 45)
 ```
 
 From this heatmap you could roughly see housing price actually followed different trending at different areas. Now make an App to enable end users to visualize our data set!
